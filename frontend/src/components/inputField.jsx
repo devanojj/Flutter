@@ -5,7 +5,12 @@ export default function InputField({ onSubmit, disabled }) {
 
   const handle = e => {
     e.preventDefault();
-    if (value.trim()) onSubmit(value.trim());
+    
+    if (value.trim()) {
+      onSubmit(value.trim());
+      setValue('');      
+    }
+
   };
 
   return (

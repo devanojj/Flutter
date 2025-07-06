@@ -3,24 +3,21 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 
-
 // Load GEMINI_API_KEY into process.env
-dotenv.config(); 
+dotenv.config();
 
 const app = express();
 const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 app.use(express.json());
 
-
 // Allow only your front-end to call this API
-app.use(cors({ 
-  origin: 'http://localhost:5173',  
+app.use(cors({
+  origin: 'http://localhost:5173',
 }));
 
-
-// Core AI route accept & return result
-app.post('/api/explain', async (req, res, next) => { 
+// Core AI route: accept { term } and return { explanation, related[] }
+app.post('/api/explain', async (req, res, next) => {
   try {
     const { term } = req.body;
     if (!term || typeof term !== 'string') {
@@ -28,57 +25,53 @@ app.post('/api/explain', async (req, res, next) => {
     }
 
     const prompt = `
-      Explain "${term}" in 2–3 sentences.
-      Then list 3 related topics as bullet points.
+Explain "${term}" in 2–3 sentences.
+Then return exactly 3 related topic names, as a JSON array (e.g. ["UDP","Networks","HTTPS"]) and nothing else.
     `;
 
     const resp = await client.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: prompt,
+      model: 'gemini-2.5-flash',
+      contents: prompt,
     });
 
     console.log('AI raw response:', JSON.stringify(resp, null, 2));
 
-    // Extract the generated text from the first candidate
+    // Extract the generated text
     const generated = resp.text;
-
     if (typeof generated !== 'string') {
-    throw new Error('No text returned from AI model');
+      throw new Error('No text returned from AI model');
     }
 
+    // Separate explanation from JSON array of related topics
+    const jsonMatch = generated.match(/(\[.*\])\s*$/m);
+    if (!jsonMatch) {
+      throw new Error('Related topics JSON not found in AI output');
+    }
 
-    // Split into lines, trim, and drop empties
-    const lines = generated
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean);
+    let related;
+    try {
+      related = JSON.parse(jsonMatch[1]);
+      if (!Array.isArray(related)) throw new Error();
+    } catch {
+      throw new Error('Failed to parse related topics JSON');
+    }
 
-
-    // First line is the explanation
-    const explanation = lines.shift();
-
-
-    // The rest (up to 5) are related topics, bullets stripped
-    const related = lines
-    .map(l => l.replace(/^[-*]\s*/, ''))
-    .slice(0, 5);
+    const explanation = generated.slice(0, jsonMatch.index).trim();
 
     res.json({ explanation, related });
-
   } catch (err) {
     console.error('Error in /api/explain:', err);
     next(err);
   }
 });
 
-// Error handler 
-app.use((err, _req, res, _next) => { 
+// Error handling
+app.use((err, _req, res, _next) => {
   console.error(err);
   res
     .status(500)
     .json({ error: 'An internal error occurred. Please try again later.' });
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

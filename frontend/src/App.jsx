@@ -36,9 +36,17 @@ export default function App() {
       {loading && <div>Loading…</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
       {!loading && !error && <ExplanationDisplay explanation={explanation} />}
-      {!loading && !error && related.length > 0 && (
+      {/* {!loading && !error && related.length > 0 && (
         <KeywordButtons related={related} onClick={handleSubmit} />
-      )}
+      )} */}
+      {!loading && !error && related.length > 0 && (
+        <>
+          <p style={{ margin: '1rem 0 0.5rem', fontWeight: 'bold' }}>
+            Related topics:
+          </p>
+          <KeywordButtons related={related} onClick={handleSubmit} />
+        </>
+     )}
     </div>
     
   );
