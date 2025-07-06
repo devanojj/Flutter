@@ -21,14 +21,13 @@ An interactive, web app that lets you input any term, receive a concise explanat
 
 ## Setup & Installation
 
-- **Clone the repo**  
+- Clone the repo 
 
-Backend: cd backend, pnpm install, create .env with GEMINI_API_KEY
-Frontend: cd frontend, pnpm install
+- Backend: cd backend, pnpm install, create .env with GEMINI_API_KEY
+- Frontend: cd frontend, pnpm install
 
-Running Locally
-Backend: cd backend, pnpm run dev
-Starts the Express server on http://localhost:3000/.
 
-Frontend: cd frontend, pnpm run dev
-Starts Vite on http://localhost:5173/
+## Running Locally
+- Backend: cd backend, pnpm run dev , starts the express server on http://localhost:3000/.
+
+- Frontend: cd frontend, pnpm run dev, starts Vite on http://localhost:5173/
